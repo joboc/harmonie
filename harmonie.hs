@@ -89,18 +89,18 @@ renverser n notes = reverse $ ((reverse $ take nb notes) ++ (take (length notes 
 
 
 accord :: String -> [Note]
-accord accord = let tailleNote = if accord !! 1 == '#' || accord !! 1 == 'b' then 2 else 1
-                    accordType = getAccordType $ drop tailleNote accord
-                in  construireAccord (readNote $ take tailleNote accord) accordType
-                     where getAccordType ""   = majeur
-                           getAccordType "m"  = mineur
-                           getAccordType "-"  = mineur
-                           getAccordType "7"  = septiemeDom
-                           getAccordType "m7" = mineur7
-                           getAccordType "-7" = mineur7
-                           getAccordType "M7" = majeur7
-                           getAccordType "maj7" = majeur7
-
+accord accordS = let tailleNote = if length accordS > 1 && (accordS !! 1 == '#' || accordS !! 1 == 'b') then 2 else 1
+                     accordType = getAccordType $ drop tailleNote accordS
+                 in  construireAccord (readNote $ take tailleNote accordS) accordType
+                      where getAccordType ""   = majeur
+                            getAccordType "m"  = mineur
+                            getAccordType "-"  = mineur
+                            getAccordType "7"  = septiemeDom
+                            getAccordType "m7" = mineur7
+                            getAccordType "-7" = mineur7
+                            getAccordType "M7" = majeur7
+                            getAccordType "maj7" = majeur7
+      
 -- Tests unitaires
 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map show $ construireAccord (readNote "La") majeur, "La Do# Mi")
@@ -109,7 +109,7 @@ testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map show $ co
 testAccordMineur7 = ("Accord mineur 7e        ", intercalate " " $ map show $ construireAccord (readNote "Mi") mineur7, "Mi Sol Si Re")
 testAccordMajeur7 = ("Accord majeur 7         ", intercalate " " $ map show $ construireAccord (readNote "Do#") majeur7, "Do# Fa Lab Do")
 testRenversement  = ("Renversement            ", intercalate " " $ map show $ renverser 2 $ construireAccord (readNote "Do#") majeur7, "Lab Do Do# Fa")
-testparseAccordM  = ("Parsing d'accord majeur ", intercalate " " $ map show $ accord "G#", "Lab Do Mib")
+testparseAccordM  = ("Parsing d'accord majeur ", intercalate " " $ map show $ accord "C", "Do Mi Sol")
 testparseAccordm  = ("Parsing d'accord mineur ", intercalate " " $ map show $ accord "Abm", "Lab Si Mib")
 testparseAccord7  = ("Parsing d'accord 7e     ", intercalate " " $ map show $ accord "G#7", "Lab Do Mib Fa#")
 testparseAccordm7 = ("Parsing d'accord m7     ", intercalate " " $ map show $ accord "G#m7", "Lab Si Mib Fa#")
