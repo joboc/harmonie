@@ -2,76 +2,38 @@ import Data.List
 
 -- Musical data
 
-data Alteration = Bemol | Naturel | Sharp
+data Alteration = Bemol | Naturel | Diese deriving Eq
+
 data Note = Note Integer Alteration
 
 showNoteId 0 = "Do"
-showNoteId 1 = "Re"
-showNoteId 2 = "Mi"
-showNoteId 3 = "Fa"
-showNoteId 4 = "Sol"
-showNoteId 5 = "La"
-showNoteId 6 = "Si"
+showNoteId 2 = "Re"
+showNoteId 4 = "Mi"
+showNoteId 5 = "Fa"
+showNoteId 7 = "Sol"
+showNoteId 9 = "La"
+showNoteId 11 = "Si"
 showAlt Bemol   = "b"
 showAlt Naturel = ""
-showAlt Sharp   = "#"
+showAlt Diese   = "#"
 
 instance Show Note where
     show (Note n a) = showNoteId n ++ showAlt a
 
 readNoteId "Do"  = 0
-readNoteId "Re"  = 1
-readNoteId "Mi"  = 2
-readNoteId "Fa"  = 3
-readNoteId "Sol" = 4
-readNoteId "La"  = 5
-readNoteId "Si"  = 6
+readNoteId "Re"  = 2
+readNoteId "Mi"  = 4
+readNoteId "Fa"  = 5
+readNoteId "Sol" = 7
+readNoteId "La"  = 9
+readNoteId "Si"  = 11
 readAlt "b" = Bemol
 readAlt ""  = Naturel
-readAlt "#" = Sharp
+readAlt "#" = Diese
 
 readNote :: String -> Note
 readNote noteS = let alteration = if last noteS == '#' || last noteS == 'b' then [last noteS] else ""
                  in Note (readNoteId $ take (length noteS - length alteration) noteS) (readAlt alteration)
-
-{--
-readNote :: String -> Note
-readNote "Do"   =  Note 0
-readNote "Do#"  =  Note 1
-readNote "Reb"  =  Note 1
-readNote "Re"   =  Note 2
-readNote "Re#"  =  Note 3
-readNote "Mib"  =  Note 3
-readNote "Mi"   =  Note 4
-readNote "Fa"   =  Note 5
-readNote "Fa#"  =  Note 6
-readNote "Solb" =  Note 6
-readNote "Sol"  =  Note 7
-readNote "Sol#" =  Note 8
-readNote "Lab"  =  Note 8
-readNote "La"   =  Note 9
-readNote "La#"  =  Note 10
-readNote "Sib"  =  Note 10
-readNote "Si"   =  Note 11
-
-readNote "C"    =  Note 0
-readNote "C#"   =  Note 1
-readNote "Db"   =  Note 1
-readNote "D"    =  Note 2
-readNote "D#"   =  Note 3
-readNote "Eb"   =  Note 3
-readNote "E"    =  Note 4
-readNote "F"    =  Note 5
-readNote "F#"   =  Note 6
-readNote "Gb"   =  Note 6
-readNote "G"    =  Note 7
-readNote "G#"   =  Note 8
-readNote "Ab"   =  Note 8
-readNote "A"    =  Note 9
-readNote "A#"   =  Note 10
-readNote "Bb"   =  Note 10
-readNote "B"    =  Note 11
---}
 
 type Intervalle = Integer
 fondamentale    = 0
@@ -95,8 +57,17 @@ majeur7     = [fondamentale, tierceMajeure, quinte, septiemeMajeure]
 
 -- Logique
 
+isBlancheId n = n == 0 || n == 2 || n == 4 || n == 5 || n == 7 || n == 9 || n == 11
+
+decaler :: Note -> Intervalle -> Note
+decaler (Note n alt) intervalle = let arriveeId = (n+intervalle) `mod` 12
+                                  in if isBlancheId arriveeId
+                                     then Note arriveeId Naturel
+                                     else if alt == Diese then Note (arriveeId-1) Diese else Note (arriveeId+1) Bemol
+{--
 decaler :: Note -> Intervalle -> Note
 decaler (Note n) intervalle = Note ((n+intervalle) `mod` 12)
+--}
 
 construireAccord :: Note -> [Intervalle] -> [Note]
 construireAccord fondamentale intervalles = map (decaler fondamentale) intervalles
