@@ -2,22 +2,39 @@ import Data.List
 
 -- Musical data
 
-data Note = Note Integer
+data Alteration = Bemol | Naturel | Sharp
+data Note = Note Integer Alteration
+
+showNoteId 0 = "Do"
+showNoteId 1 = "Re"
+showNoteId 2 = "Mi"
+showNoteId 3 = "Fa"
+showNoteId 4 = "Sol"
+showNoteId 5 = "La"
+showNoteId 6 = "Si"
+showAlt Bemol   = "b"
+showAlt Naturel = ""
+showAlt Sharp   = "#"
 
 instance Show Note where
-    show (Note 0) = "Do"
-    show (Note 1) = "Do#"
-    show (Note 2) = "Re"
-    show (Note 3) = "Mib"
-    show (Note 4) = "Mi"
-    show (Note 5) = "Fa"
-    show (Note 6) = "Fa#"
-    show (Note 7) = "Sol"
-    show (Note 8) = "Lab"
-    show (Note 9) = "La"
-    show (Note 10) = "Sib"
-    show (Note 11) = "Si"
+    show (Note n a) = showNoteId n ++ showAlt a
 
+readNoteId "Do"  = 0
+readNoteId "Re"  = 1
+readNoteId "Mi"  = 2
+readNoteId "Fa"  = 3
+readNoteId "Sol" = 4
+readNoteId "La"  = 5
+readNoteId "Si"  = 6
+readAlt "b" = Bemol
+readAlt ""  = Naturel
+readAlt "#" = Sharp
+
+readNote :: String -> Note
+readNote noteS = let alteration = if last noteS == '#' || last noteS == 'b' then [last noteS] else ""
+                 in Note (readNoteId $ take (length noteS - length alteration) noteS) (readAlt alteration)
+
+{--
 readNote :: String -> Note
 readNote "Do"   =  Note 0
 readNote "Do#"  =  Note 1
@@ -54,6 +71,7 @@ readNote "A"    =  Note 9
 readNote "A#"   =  Note 10
 readNote "Bb"   =  Note 10
 readNote "B"    =  Note 11
+--}
 
 type Intervalle = Integer
 fondamentale    = 0
@@ -87,7 +105,6 @@ renverser :: Int -> [Note] -> [Note]
 renverser n notes = reverse $ ((reverse $ take nb notes) ++ (take (length notes - nb) $ reverse notes)) where
                 nb = n `mod` length notes
 
-
 accord :: String -> [Note]
 accord accordS = let tailleNote = if length accordS > 1 && (accordS !! 1 == '#' || accordS !! 1 == 'b') then 2 else 1
                      accordType = getAccordType $ drop tailleNote accordS
@@ -114,6 +131,7 @@ testparseAccordm  = ("Parsing d'accord mineur ", intercalate " " $ map show $ ac
 testparseAccord7  = ("Parsing d'accord 7e     ", intercalate " " $ map show $ accord "G#7", "Lab Do Mib Fa#")
 testparseAccordm7 = ("Parsing d'accord m7     ", intercalate " " $ map show $ accord "G#m7", "Lab Si Mib Fa#")
 testparseAccordM7 = ("Parsing d'accord maj7   ", intercalate " " $ map show $ accord "G#maj7", "Lab Do Mib Sol")
+testReadShowNote  = ("Lire/Afficher note      ", intercalate " " $ map show $ [readNote "Mi", readNote "Fa#", readNote "Solb"], "Mi Fa# Solb")
 
 
 unitTest = let
