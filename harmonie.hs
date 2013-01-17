@@ -1,10 +1,11 @@
 import Data.List
+import Control.Applicative
 
 -- Musical data
 
 data Alteration = Bemol | Naturel | Diese deriving Eq
 
-data Note = Note {getBlanche :: Int, getAlt :: Alteration}
+data Note = Note {getBlanche :: Int, getAlt :: Alteration} deriving Eq
 
 showNoteId 0 = "Do"
 showNoteId 2 = "Re"
@@ -56,16 +57,17 @@ sixte           = 9
 septiemeMineure = 10
 septiemeMajeure = 11
 
-majeur      = [fondamentale, tierceMajeure, quinte]
-mineur      = [fondamentale, tierceMineure, quinte]
-septiemeDom = [fondamentale, tierceMajeure, quinte, septiemeMineure]
-mineur7     = [fondamentale, tierceMineure, quinte, septiemeMineure]
-majeur7     = [fondamentale, tierceMajeure, quinte, septiemeMajeure]
+type Accord = ([Int], [Int], Int)
+majeur      = ([1, 3, 5], gammeMajeure, 0)
+mineur      = ([1, 3, 5], gammeMineure, 0)
+septiemeDom = ([5, 7, 2, 4], gammeMajeure, -7)
+mineur7     = ([1, 3, 5, 7], gammeMineure, 0)
+majeur7     = ([1, 3, 5, 7], gammeMajeure, 0)
 
 demiTon = 1
 ton = 2
-gammeMajeure :: [Int]
-gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton, demiTon]
+gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton, demiTon] :: [Int]
+gammeMineure = [0, ton, demiTon, ton, ton, demiTon, ton, ton] :: [Int]
 
 -- Logique
 
@@ -88,23 +90,15 @@ construireGamme (Note blancheFond altFond) typeGamme = let notes = map readNote 
                                                                          | alt <- [Bemol, Naturel, Diese]
                                                                          , valeur (Note n alt) `mod` 12 == (valeur (Note blancheFond altFond) + intervalle) `mod` 12]
 
-decaler :: Note -> Intervalle -> Note
-decaler (Note n alt) intervalle = let arriveeId = (n + (valeurAlt alt) + intervalle) `mod` 12
-                                  in if isBlancheId arriveeId
-                                     then Note arriveeId Naturel
-                                     else if alt == Bemol then Note (arriveeId+1) Bemol else Note (arriveeId-1) Diese
-                                  where isBlancheId n = n == 0 || n == 2 || n == 4 || n == 5 || n == 7 || n == 9 || n == 11
-                                        valeurAlt Diese = 1
-                                        valeurAlt Naturel = 0
-                                        valeurAlt Bemol = -1
-
-{--
-decaler :: Note -> Intervalle -> Note
-decaler (Note n) intervalle = Note ((n+intervalle) `mod` 12)
---}
-
-construireAccord :: Note -> [Intervalle] -> [Note]
-construireAccord fondamentale intervalles = map (decaler fondamentale) intervalles
+construireAccord :: Note -> Accord -> [Note]
+construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let valeurDecalee = (valeur fondamentale + decalage) `mod` 12
+                                                                             in if isBlanche valeurDecalee
+                                                                                then construireGamme (Note valeurDecalee Naturel) gamme
+                                                                                else if fondamentale `elem` (construireGamme (Note (valeurDecalee - 1) Diese) gamme)
+                                                                                     then construireGamme (Note (valeurDecalee - 1) Diese) gamme
+                                                                                     else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
+                                                          in (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
+                              where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
 
 renverser :: Int -> [Note] -> [Note]
 renverser n notes = reverse $ ((reverse $ take nb notes) ++ (take (length notes - nb) $ reverse notes)) where
@@ -128,6 +122,10 @@ accord accordS = let tailleNote = if length accordS > 1 && (accordS !! 1 == '#' 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map show $ construireAccord (readNote "La") majeur, "La Do# Mi")
 testAccordMineur  = ("Accord mineur           ", intercalate " " $ map show $ construireAccord (readNote "Do") mineur, "Do Mib Sol")
 testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map show $ construireAccord (readNote "Sol") septiemeDom, "Sol Si Re Fa")
+testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map show $ construireAccord (readNote "Fa") septiemeDom, "Fa La Sib Mib")
+testAccord7domD   = ("Accord 7e dom ( #)      ", intercalate " " $ map show $ construireAccord (readNote "Fa#") septiemeDom, "Fa# La# Do# Mi")
+testAccord7dombb  = ("Accord 7e dom (bb)      ", intercalate " " $ map show $ construireAccord (readNote "Re#") septiemeDom, "Re# Sol La# Do#")
+testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map show $ construireAccord (readNote "Mib") septiemeDom, "Mib Sol Sib Reb")
 testAccordMineur7 = ("Accord mineur 7e        ", intercalate " " $ map show $ construireAccord (readNote "Mi") mineur7, "Mi Sol Si Re")
 testAccordMajeur7D= ("Accord majeur 7 (diese) ", intercalate " " $ map show $ construireAccord (readNote "Do#") majeur7, "Do# Fa Sol# Do")
 testAccordMajeur7b= ("Accord majeur 7 (bemol) ", intercalate " " $ map show $ construireAccord (readNote "Reb") majeur7, "Reb Fa Lab Do")
@@ -144,8 +142,12 @@ testGammeMajeure  = ("Gamme majeure           ", intercalate " " $ map show $ co
 unitTest = let
               unitTestsAux = unlines $ map (\(nom, test, resultat) -> nom ++ ": " ++ (if test == resultat then "OK" else "FAILED")) [
                  testAccordMajeur
-                ,testAccordMineur 
-                ,testAccord7dom 
+                ,testAccordMineur
+                ,testAccord7dom
+                ,testAccord7domb
+                ,testAccord7domD
+                ,testAccord7dombb
+                ,testAccord7domDD
                 ,testAccordMineur7
                 ,testAccordMajeur7D
                 ,testAccordMajeur7b
