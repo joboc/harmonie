@@ -3,7 +3,7 @@ import Control.Applicative
 
 -- Musical data
 
-data Alteration = Bemol | Naturel | Diese deriving Eq
+data Alteration = DoubleBemol | Bemol | Naturel | Diese | DoubleDiese deriving Eq
 
 data Note = Note {getBlanche :: Int, getAlt :: Alteration} deriving Eq
 
@@ -14,9 +14,11 @@ showNoteId 5 = "Fa"
 showNoteId 7 = "Sol"
 showNoteId 9 = "La"
 showNoteId 11 = "Si"
-showAlt Bemol   = "b"
-showAlt Naturel = ""
-showAlt Diese   = "#"
+showAlt DoubleBemol = "bb"
+showAlt Bemol       = "b"
+showAlt Naturel     = ""
+showAlt Diese       = "#"
+showAlt DoubleDiese = "x"
 
 instance Show Note where
     show (Note n a) = showNoteId n ++ showAlt a
@@ -35,9 +37,11 @@ readNoteId "F"  = 5
 readNoteId "G" = 7
 readNoteId "A"  = 9
 readNoteId "B"  = 11
+readAlt "B" = DoubleBemol
 readAlt "b" = Bemol
 readAlt ""  = Naturel
 readAlt "#" = Diese
+readAlt "x" = DoubleDiese
 
 readNote :: String -> Note
 readNote noteS = let alteration = if last noteS == '#' || last noteS == 'b' then [last noteS] else ""
@@ -58,37 +62,40 @@ septiemeMineure = 10
 septiemeMajeure = 11
 
 type Accord = ([Int], [Int], Int)
-majeur      = ([1, 3, 5], gammeMajeure, 0)
-mineur      = ([1, 3, 5], gammeMineure, 0)
-septiemeDom = ([5, 7, 2, 4], gammeMajeure, -7)
-mineur7     = ([1, 3, 5, 7], gammeMineure, 0)
-majeur7     = ([1, 3, 5, 7], gammeMajeure, 0)
+majeur      = ([1, 3, 5], gammeMajeure, 0)     :: Accord
+mineur      = ([1, 3, 5], gammeMineure, 0)     :: Accord
+septiemeDom = ([5, 7, 2, 4], gammeMajeure, -7) :: Accord
+mineur7     = ([1, 3, 5, 7], gammeMineure, 0)  :: Accord
+majeur7     = ([1, 3, 5, 7], gammeMajeure, 0)  :: Accord
 
 demiTon = 1
 ton = 2
-gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton, demiTon] :: [Int]
-gammeMineure = [0, ton, demiTon, ton, ton, demiTon, ton, ton] :: [Int]
+type Gamme = [Intervalle]
+gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton, demiTon] :: Gamme
+gammeMineure = [0, ton, demiTon, ton, ton, demiTon, ton, ton] :: Gamme
 
 -- Logique
 
 valeur :: Note -> Int
 valeur (Note blanche alt)
+    | alt == DoubleBemol = blanche - 2
     | alt == Bemol = blanche - 1
     | alt == Naturel = blanche
     | alt == Diese = blanche + 1
+    | alt == DoubleDiese = blanche + 2
 
 cumul :: (Num a) => [a] -> [a]
 cumul = cumul' 0 where cumul' _ [] = []
                        cumul' s (x:xs) = (x+s):(cumul' (s+x) xs)
 
-construireGamme :: Note -> [Intervalle] -> [Note]
+construireGamme :: Note -> Gamme -> [Note]
 construireGamme (Note blancheFond altFond) typeGamme = let notes = map readNote ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"]
                                                            base = let (ls, rs) = break (\note -> getBlanche note == blancheFond) notes in rs ++ ls
                                                            cumulGamme = cumul typeGamme
                                                        in zipWith alterer base cumulGamme
-                              where alterer (Note n _) intervalle = head [Note n alt
-                                                                         | alt <- [Bemol, Naturel, Diese]
-                                                                         , valeur (Note n alt) `mod` 12 == (valeur (Note blancheFond altFond) + intervalle) `mod` 12]
+                      where alterer (Note n _) intervalle = head [Note n alt
+                                                                 | alt <- [DoubleBemol, Bemol, Naturel, Diese, DoubleDiese]
+                                                                 , valeur (Note n alt) `mod` 12 == (valeur (Note blancheFond altFond) + intervalle) `mod` 12]
 
 construireAccord :: Note -> Accord -> [Note]
 construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let valeurDecalee = (valeur fondamentale + decalage) `mod` 12
@@ -98,31 +105,52 @@ construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let
                                                                                      then construireGamme (Note (valeurDecalee - 1) Diese) gamme
                                                                                      else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
                                                           in (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
-                              where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
+                      where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
+
+simplifier "Dob" = "Si"
+simplifier "Dobb" = "Sib"
+simplifier "Si#" = "Do"
+simplifier "Six" = "Do#"
+simplifier "Mi#" = "Fa"
+simplifier "Mix" = "Fa#"
+simplifier "Fabb" = "Mib"
+-- TODO gerer les double aussi
 
 renverser :: Int -> [Note] -> [Note]
 renverser n notes = reverse $ ((reverse $ take nb notes) ++ (take (length notes - nb) $ reverse notes)) where
                 nb = n `mod` length notes
 
+parseAndConstruct :: String -> (Note -> a -> [Note]) -> (String -> a) -> [Note]
+parseAndConstruct input constructeur getType = let tailleNote = if length input > 1 && (input !! 1 == '#' || input !! 1 == 'b') then 2 else 1
+                                                   tType = getType $ drop tailleNote input
+                                               in  constructeur (readNote $ take tailleNote input) tType
+      
 accord :: String -> [Note]
-accord accordS = let tailleNote = if length accordS > 1 && (accordS !! 1 == '#' || accordS !! 1 == 'b') then 2 else 1
-                     accordType = getAccordType $ drop tailleNote accordS
-                 in  construireAccord (readNote $ take tailleNote accordS) accordType
-                      where getAccordType ""   = majeur
-                            getAccordType "m"  = mineur
-                            getAccordType "-"  = mineur
-                            getAccordType "7"  = septiemeDom
-                            getAccordType "m7" = mineur7
-                            getAccordType "-7" = mineur7
-                            getAccordType "M7" = majeur7
-                            getAccordType "maj7" = majeur7
+accord accordS = parseAndConstruct accordS construireAccord getAccordType
+
+gamme :: String -> [Note]
+gamme gammeS = parseAndConstruct gammeS construireGamme getGammeType
+
+getAccordType :: String -> Accord
+getAccordType ""   = majeur
+getAccordType "m"  = mineur
+getAccordType "-"  = mineur
+getAccordType "7"  = septiemeDom
+getAccordType "m7" = mineur7
+getAccordType "-7" = mineur7
+getAccordType "M7" = majeur7
+getAccordType "maj7" = majeur7
+
+getGammeType :: String -> Gamme
+getGammeType ""   = gammeMajeure
+getGammeType "m"  = gammeMineure
       
 -- Tests unitaires
 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map show $ construireAccord (readNote "La") majeur, "La Do# Mi")
 testAccordMineur  = ("Accord mineur           ", intercalate " " $ map show $ construireAccord (readNote "Do") mineur, "Do Mib Sol")
 testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map show $ construireAccord (readNote "Sol") septiemeDom, "Sol Si Re Fa")
-testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map show $ construireAccord (readNote "Fa") septiemeDom, "Fa La Sib Mib")
+testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map show $ construireAccord (readNote "Fa") septiemeDom, "Fa La Do Mib")
 testAccord7domD   = ("Accord 7e dom ( #)      ", intercalate " " $ map show $ construireAccord (readNote "Fa#") septiemeDom, "Fa# La# Do# Mi")
 testAccord7dombb  = ("Accord 7e dom (bb)      ", intercalate " " $ map show $ construireAccord (readNote "Re#") septiemeDom, "Re# Sol La# Do#")
 testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map show $ construireAccord (readNote "Mib") septiemeDom, "Mib Sol Sib Reb")
@@ -137,6 +165,8 @@ testparseAccordm7 = ("Parsing d'accord m7     ", intercalate " " $ map show $ ac
 testparseAccordM7 = ("Parsing d'accord maj7   ", intercalate " " $ map show $ accord "G#maj7", "Sol# Do Re# Sol")
 testReadShowNote  = ("Lire/Afficher note      ", intercalate " " $ map show $ [readNote "Mi", readNote "Fa#", readNote "Solb"], "Mi Fa# Solb")
 testGammeMajeure  = ("Gamme majeure           ", intercalate " " $ map show $ construireGamme (readNote "Re") gammeMajeure, "Re Mi Fa# Sol La Si Do#")
+testParseGammeMaj = ("Parsing de gamme majeure", intercalate " " $ map show $ gamme "D", "Re Mi Fa# Sol La Si Do#")
+testParseGammeMin = ("Parsing de gamme mineure", intercalate " " $ map show $ gamme "Gm", "Sol La Sib Do Re Mib Fa")
 
 
 unitTest = let
@@ -158,5 +188,7 @@ unitTest = let
                 ,testparseAccordm7
                 ,testparseAccordM7
                 ,testGammeMajeure
+                ,testParseGammeMaj
+                ,testParseGammeMin
                 ]
            in  putStrLn unitTestsAux
