@@ -104,18 +104,26 @@ construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let
                                                                                 else if fondamentale `elem` (construireGamme (Note (valeurDecalee - 1) Diese) gamme)
                                                                                      then construireGamme (Note (valeurDecalee - 1) Diese) gamme
                                                                                      else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
-                                                          in (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
+                                                          in map simplifier $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
                       where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
 
-simplifier "Dob" = "Si"
-simplifier "Dobb" = "Sib"
-simplifier "Si#" = "Do"
-simplifier "Six" = "Do#"
-simplifier "Mi#" = "Fa"
-simplifier "Mix" = "Fa#"
-simplifier "Fabb" = "Mib"
--- TODO gerer les double aussi
-
+simplifier = readNote . simplifier' . show
+  where simplifier' "Dob" = "Si"
+        simplifier' "Si#" = "Do"
+        simplifier' "Fab" = "Mi"
+        simplifier' "Mi#" = "Fa"
+        simplifier' "Dox" = "Re"
+        simplifier' "Rex" = "Mi"
+        simplifier' "Fax" = "Sol"
+        simplifier' "Solx" = "La"
+        simplifier' "Lax" = "Si"
+        simplifier' "Rebb" = "Do"
+        simplifier' "Mibb" = "Re"
+        simplifier' "Solbb" = "Fa"
+        simplifier' "Labb" = "Sol"
+        simplifier' "Sibb" = "La"
+        simplifier' n = n
+        
 renverser :: Int -> [Note] -> [Note]
 renverser n notes = reverse $ ((reverse $ take nb notes) ++ (take (length notes - nb) $ reverse notes)) where
                 nb = n `mod` length notes
