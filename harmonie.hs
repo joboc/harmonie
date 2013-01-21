@@ -1,6 +1,11 @@
 import Data.List
 import Control.Applicative
 
+import Text.XML.HXT.Parser.XmlParsec
+import Text.XML.HXT.DOM.TypeDefs
+import Text.XML.HXT.DOM.QualifiedName
+import Data.Tree.NTree.TypeDefs
+
 -- Musical data
 
 data Alteration = DoubleBemol | Bemol | Naturel | Diese | DoubleDiese deriving Eq
@@ -152,6 +157,26 @@ getAccordType "maj7" = majeur7
 getGammeType :: String -> Gamme
 getGammeType ""   = gammeMajeure
 getGammeType "m"  = gammeMineure
+
+-- import/export XML
+
+parcourirXML :: [String] -> NTrees XNode -> String
+parcourirXML _ [NTree (XText nom) []] = nom
+parcourirXML chemin ((NTree (XTag qTag _) deeperTrees):otherTrees) = parcourirXML chemin (if localPart qTag `elem` chemin then deeperTrees else otherTrees)
+parcourirXML _ [] = ""
+
+construireXMLNotes :: [String] -> String
+construireXMLNotes resultats = unlines $ ["<resultat>"] ++ (map (\r -> "<note>"++r++"</note>") resultats) ++ ["</resultat>"]
+
+traiterRequete :: String -> String
+traiterRequete requeteXML = let nomAccord = parcourirXML ["accord", "nom"] . xread . concat . lines $ requeteXML
+                                renversement = read $ parcourirXML ["accord", "renversement"] . xread . concat . lines $ requeteXML
+                                notes = renverser renversement $ accord nomAccord
+                            in construireXMLNotes $ map show $ notes
+
+main = do
+    requeteXML <- readFile "request.xml"
+    writeFile "result.xml" $ traiterRequete requeteXML
       
 -- Tests unitaires
 
