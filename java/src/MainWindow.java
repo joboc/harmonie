@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 public class MainWindow extends JFrame{
 
 	Clavier clavier;
+	JTextField txtInput;
 	
     MainWindow(){
         this.setSize(new Dimension(Clavier.taille, 400));
@@ -25,7 +26,7 @@ public class MainWindow extends JFrame{
         this.getContentPane().add(clavier, BorderLayout.CENTER);
 
         JPanel panneauHaut = new JPanel();
-        JTextField txtInput = new JTextField("");
+        txtInput = new JTextField();
         txtInput.setPreferredSize(new Dimension(50, 30));
         panneauHaut.add(txtInput);
         this.getContentPane().add(panneauHaut, BorderLayout.NORTH);
@@ -37,12 +38,10 @@ public class MainWindow extends JFrame{
         txtInput.addKeyListener(new KeyAdapter(){
         	public void keyPressed(KeyEvent e){
         		if (e.getKeyCode() == KeyEvent.VK_ENTER){
+        			XMLImportExport calculateurNotes = new XMLImportExport(txtInput.getText());
+        			ArrayList<String> noms = calculateurNotes.getResultat();
+
         			clavier.reset();
-        			ArrayList<String> noms = new ArrayList<String>();
-        			noms.add("Do");
-        			noms.add("Mi");
-        			noms.add("Sol");
-        			noms.add("Si");
         			clavier.activate(noms);
         		}
         	}

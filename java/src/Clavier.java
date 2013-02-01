@@ -62,8 +62,13 @@ public class Clavier extends JPanel{
 	}
 	
 	public void activate(ArrayList<String> noms){
+		int notePrecedente = -1;
 		for (int i = 0; i < noms.size(); ++i){
-			notesActives[mappingNomsNotes.get(noms.get(i))] = true;
+			int note = mappingNomsNotes.get(noms.get(i));
+			while (note < notePrecedente)
+				note += 12;
+			notesActives[note] = true;
+			notePrecedente = note;
 		}
 		this.repaint();
 	}
