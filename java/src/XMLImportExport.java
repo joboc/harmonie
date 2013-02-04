@@ -31,20 +31,21 @@ public class XMLImportExport {
 	        trans.transform(source, result);
 	        String xmlString = sw.toString();
 	        
-	        FileWriter fstream = new FileWriter("request.xml");
-	        BufferedWriter out = new BufferedWriter(fstream);
+	        FileWriter fWriter = new FileWriter("request.xml");
+	        BufferedWriter out = new BufferedWriter(fWriter);
 	        out.write(xmlString);
 	        out.close();
 	        
 	        ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "./chords");
 	        Process p = pb.start();
-	        p.waitFor();
+	        InputStream inputStream = p.getInputStream();
+	        BufferedReader bufReader = new BufferedReader(new InputStreamReader(inputStream));
+	        bufReader.readLine();
 
 	        resultat = new ArrayList<String>();
 	        Document xmlResult = docBuilder.parse("result.xml");
 	        Element resultatElement = xmlResult.getDocumentElement();
-	        NodeList nl = resultatElement.getElementsByTagName("resultat");
-	        System.out.println(nl.getLength());
+	        NodeList nl = resultatElement.getElementsByTagName("note");
 	        if(nl != null && nl.getLength() > 0){
 	        	for (int i = 0; i < nl.getLength(); ++i) {
 	        		Element el = (Element) nl.item(i);

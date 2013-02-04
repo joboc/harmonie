@@ -177,6 +177,7 @@ traiterRequete requeteXML = let nomAccord = parcourirXML ["accord", "nom"] . xre
 main = do
     requeteXML <- readFile "request.xml"
     writeFile "result.xml" $ traiterRequete requeteXML
+    putStrLn "done."
       
 -- Tests unitaires
 
