@@ -9,8 +9,10 @@ import javax.swing.JPanel;
 
 public class Clavier extends JPanel{
 	
-	private static int interstice = 5;
-	private static int tailleBlanche = 70;
+	private static int interstice = 2;
+	private static int contour = 2;
+	private static int tailleBlanche = 65;
+	private static double proportionHauteurNoire = 0.6;
 	private static int nbOctaves = 2;
 	private static int nbNotes = 12 * nbOctaves;
 	public static int taille = 7 * tailleBlanche * nbOctaves;
@@ -91,18 +93,24 @@ public class Clavier extends JPanel{
 	public void paintComponent(Graphics g){
 		int tailleOctave = 7 * tailleBlanche;
 		for (int iOctave = 0; iOctave < 2; ++iOctave){
+			// touches blanches
 			for (int i = 0; i < 7; ++i){
-				g.setColor(Color.WHITE);
-				if (notesActives[indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE)])
-					g.setColor(Color.RED);
+				g.setColor(Color.BLACK); // contour
 				g.fillRect(iOctave * tailleOctave + interstice/2 + i * tailleBlanche, 0, tailleBlanche - interstice, this.getHeight());
+				g.setColor(Color.WHITE); // touche
+				if (notesActives[indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE)])
+					g.setColor(Color.RED); // touche active
+				g.fillRect(contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche, contour, tailleBlanche - interstice - 2*contour, this.getHeight() - 2*contour);
 			}
+			// touches noires
 			for (int i = 0; i < 6; ++i){
-				g.setColor(Color.BLACK);
 				if (i != 2){
-					if (notesActives[indexNote(iOctave, i<2 ? i : i-1, COULEUR_TOUCHE.NOIRE)])
-						g.setColor(Color.RED);
-					g.fillRect(iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i, 0, tailleBlanche/2, this.getHeight()*5/8);
+					g.setColor(Color.BLACK); // contour
+					g.fillRect(iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i, 0, tailleBlanche/2, (int) (this.getHeight() * proportionHauteurNoire));
+					if (notesActives[indexNote(iOctave, i<2 ? i : i-1, COULEUR_TOUCHE.NOIRE)]){
+						g.setColor(Color.RED); // touche active
+					}
+					g.fillRect(contour + iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i, contour, tailleBlanche/2 - 2*contour, (int) (this.getHeight() * proportionHauteurNoire - 2*contour));
 				}
 			}
 		}
