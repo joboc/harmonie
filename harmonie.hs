@@ -6,6 +6,8 @@ import Text.XML.HXT.DOM.TypeDefs
 import Text.XML.HXT.DOM.QualifiedName
 import Data.Tree.NTree.TypeDefs
 
+import System.IO
+
 -- Musical data
 
 data Alteration = DoubleBemol | Bemol | Naturel | Diese | DoubleDiese deriving Eq
@@ -175,10 +177,9 @@ traiterRequete requeteXML = let nomAccord = parcourirXML ["accord", "nom"] . xre
                             in construireXMLNotes $ map show $ notes
 
 main = do
-    requeteXML <- readFile "request.xml"
-    writeFile "result.xml" $ traiterRequete requeteXML
-    putStrLn "done."
-      
+    requeteXML <- getContents
+    putStrLn $ traiterRequete requeteXML
+
 -- Tests unitaires
 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map show $ construireAccord (readNote "La") majeur, "La Do# Mi")

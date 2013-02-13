@@ -30,20 +30,18 @@ public class XMLImportExport {
 	        DOMSource source = new DOMSource(xmlRequest);
 	        trans.transform(source, result);
 	        String xmlString = sw.toString();
-	        
-	        FileWriter fWriter = new FileWriter("request.xml");
-	        BufferedWriter out = new BufferedWriter(fWriter);
-	        out.write(xmlString);
-	        out.close();
-	        
+	        	        
 	        ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "./chords");
+	        pb.redirectErrorStream(true);
 	        Process p = pb.start();
 	        InputStream inputStream = p.getInputStream();
-	        BufferedReader bufReader = new BufferedReader(new InputStreamReader(inputStream));
-	        bufReader.readLine();
+	        OutputStream outputStream = p.getOutputStream();
+	        BufferedWriter bufWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+	        bufWriter.write(xmlString);
+	        bufWriter.close();
 
+	        Document xmlResult = docBuilder.parse(inputStream);
 	        resultat = new ArrayList<String>();
-	        Document xmlResult = docBuilder.parse("result.xml");
 	        Element resultatElement = xmlResult.getDocumentElement();
 	        NodeList nl = resultatElement.getElementsByTagName("note");
 	        if(nl != null && nl.getLength() > 0){
