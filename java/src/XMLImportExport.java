@@ -13,13 +13,13 @@ public class XMLImportExport {
 
 	private ArrayList<String> resultat;
 	
-	XMLImportExport(String nomAccord){
+	XMLImportExport(String nomAccord, int renversement){
 		try{
 			DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 	        Document xmlRequest = docBuilder.newDocument();
 	
-	        remplirXML(xmlRequest, nomAccord);
+	        remplirXML(xmlRequest, nomAccord, renversement);
 	        
 	        TransformerFactory transfac = TransformerFactory.newInstance();
 	        Transformer trans = transfac.newTransformer();
@@ -57,7 +57,7 @@ public class XMLImportExport {
         }
 	}
 	
-	private void remplirXML(Document doc, String nomAccord){
+	private void remplirXML(Document doc, String nomAccord, Integer renversement){
         Element accordNode = doc.createElement("accord");
         doc.appendChild(accordNode);
         Element nomNode = doc.createElement("nom");
@@ -66,7 +66,7 @@ public class XMLImportExport {
         nomNode.appendChild(nomVal);
         Element renversementNode = doc.createElement("renversement");
         accordNode.appendChild(renversementNode);
-        Text renversementVal = doc.createTextNode("0");
+        Text renversementVal = doc.createTextNode(renversement.toString());
         renversementNode.appendChild(renversementVal);
 	}
 	
