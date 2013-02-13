@@ -12,6 +12,7 @@ public class Clavier extends JPanel{
 	private static int interstice = 2;
 	private static int contour = 2;
 	private static int tailleBlanche = 65;
+	private static int hauteurActivationBlanche = 140;
 	private static double proportionHauteurNoire = 0.6;
 	private static int nbOctaves = 2;
 	private static int nbNotes = 12 * nbOctaves;
@@ -98,9 +99,11 @@ public class Clavier extends JPanel{
 				g.setColor(Color.BLACK); // contour
 				g.fillRect(iOctave * tailleOctave + interstice/2 + i * tailleBlanche, 0, tailleBlanche - interstice, this.getHeight());
 				g.setColor(Color.WHITE); // touche
-				if (notesActives[indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE)])
-					g.setColor(Color.RED); // touche active
 				g.fillRect(contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche, contour, tailleBlanche - interstice - 2*contour, this.getHeight() - 2*contour);
+				if (notesActives[indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE)]){
+					g.setColor(Color.RED); // touche active
+					g.fillRect(contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche, contour + this.getHeight() - hauteurActivationBlanche, tailleBlanche - interstice - 2*contour, hauteurActivationBlanche - 2*contour);
+				}
 			}
 			// touches noires
 			for (int i = 0; i < 6; ++i){
