@@ -111,7 +111,7 @@ construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let
                                                                                 else if elem fondamentale $ map fst (construireGamme (Note (valeurDecalee - 1) Diese) gamme)
                                                                                      then construireGamme (Note (valeurDecalee - 1) Diese) gamme
                                                                                      else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
-                                                          in map simplifier $ filter (\(n, d) -> d `elem` degres) gammeDecalee
+                                                          in map simplifier $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
                       where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
 
 simplifier :: (Note, Int) -> (Note, Int)
@@ -184,9 +184,11 @@ traiterRequete requeteXML = let nomAccord = parcourirXML ["accord", "nom"] . xre
 -- Tests unitaires
 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "La") majeur, "La Do# Mi")
+testDegresMajeur  = ("Degres majeurs          ", intercalate " " $ map (show.snd) $ construireAccord (readNote "La") majeur, "1 3 5")
 testAccordMineur  = ("Accord mineur           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Do") mineur, "Do Mib Sol")
 testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Sol") septiemeDom, "Sol Si Re Fa")
 testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa") septiemeDom, "Fa La Do Mib")
+testDegres7domb   = ("Degres 7e dom (b )      ", intercalate " " $ map (show.snd) $ construireAccord (readNote "Fa") septiemeDom, "5 7 2 4")
 testAccord7domD   = ("Accord 7e dom ( #)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa#") septiemeDom, "Fa# La# Do# Mi")
 testAccord7dombb  = ("Accord 7e dom (bb)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Re#") septiemeDom, "Re# Sol La# Do#")
 testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Mib") septiemeDom, "Mib Sol Sib Reb")
@@ -198,18 +200,20 @@ testparseAccordM  = ("Parsing d'accord majeur ", intercalate " " $ map (show.fst
 testparseAccordm  = ("Parsing d'accord mineur ", intercalate " " $ map (show.fst) $ accord "Abm", "Lab Si Mib")
 testparseAccord7  = ("Parsing d'accord 7e     ", intercalate " " $ map (show.fst) $ accord "G#7", "Sol# Do Re# Fa#")
 testparseAccordm7 = ("Parsing d'accord m7     ", intercalate " " $ map (show.fst) $ accord "G#m7", "Sol# Si Re# Fa#")
-testparseAccordM7 = ("Parsing d'accord maj7   ", intercalate " " $ map show $ accord "G#maj7", "Sol# Do Re# Sol")
+testparseAccordM7 = ("Parsing d'accord maj7   ", intercalate " " $ map (show.fst) $ accord "G#maj7", "Sol# Do Re# Sol")
 testReadShowNote  = ("Lire/Afficher note      ", intercalate " " $ map show $ [readNote "Mi", readNote "Fa#", readNote "Solb"], "Mi Fa# Solb")
-testGammeMajeure  = ("Gamme majeure           ", intercalate " " $ map show $ construireGamme (readNote "Re") gammeMajeure, "Re Mi Fa# Sol La Si Do#")
-testParseGammeMaj = ("Parsing de gamme majeure", intercalate " " $ map show $ gamme "D", "Re Mi Fa# Sol La Si Do#")
-testParseGammeMin = ("Parsing de gamme mineure", intercalate " " $ map show $ gamme "Gm", "Sol La Sib Do Re Mib Fa")
+testGammeMajeure  = ("Gamme majeure           ", intercalate " " $ map (show.fst) $ construireGamme (readNote "Re") gammeMajeure, "Re Mi Fa# Sol La Si Do#")
+testParseGammeMaj = ("Parsing de gamme majeure", intercalate " " $ map (show.fst) $ gamme "D", "Re Mi Fa# Sol La Si Do#")
+testParseGammeMin = ("Parsing de gamme mineure", intercalate " " $ map (show.fst) $ gamme "Gm", "Sol La Sib Do Re Mib Fa")
 
 
 unitTest = let
               unitTestsAux = unlines $ map (\(nom, test, resultat) -> nom ++ ": " ++ (if test == resultat then "OK" else "FAILED")) [
                  testAccordMajeur
+                ,testDegresMajeur
                 ,testAccordMineur
                 ,testAccord7dom
+                ,testDegres7domb
                 ,testAccord7domb
                 ,testAccord7domD
                 ,testAccord7dombb
