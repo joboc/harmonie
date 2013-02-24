@@ -11,7 +11,7 @@ import javax.xml.transform.stream.*;
 
 public class XMLImportExport {
 
-	private ArrayList<String> resultat;
+	private ArrayList<Note> resultat;
 	
 	XMLImportExport(String nomAccord, int renversement){
 		try{
@@ -41,14 +41,19 @@ public class XMLImportExport {
 	        bufWriter.close();
 
 	        Document xmlResult = docBuilder.parse(inputStream);
-	        resultat = new ArrayList<String>();
+	        resultat = new ArrayList<Note>();
 	        Element resultatElement = xmlResult.getDocumentElement();
-	        NodeList nl = resultatElement.getElementsByTagName("note");
-	        if(nl != null && nl.getLength() > 0){
-	        	for (int i = 0; i < nl.getLength(); ++i) {
-	        		Element el = (Element) nl.item(i);
-	        		String note = el.getFirstChild().getNodeValue();
-	        		resultat.add(note);
+	        NodeList notesList = resultatElement.getElementsByTagName("note");
+	        if(notesList != null && notesList.getLength() > 0){
+	        	for (int i = 0; i < notesList.getLength(); ++i) {
+	        		Element noteElement = (Element) notesList.item(i);
+	        		
+	        		NodeList noteNomElements = noteElement.getElementsByTagName("nom");
+	        		String resultNoteNom = noteNomElements.item(0).getFirstChild().getNodeValue();
+	        		NodeList noteDegreElements = noteElement.getElementsByTagName("degre");
+	        		String resultDegreNom = noteDegreElements.item(0).getFirstChild().getNodeValue();
+	        		
+	        		resultat.add(new Note(resultNoteNom, Integer.parseInt(resultDegreNom)));
 	        	}
 	        }
 	        
@@ -70,7 +75,7 @@ public class XMLImportExport {
         renversementNode.appendChild(renversementVal);
 	}
 	
-	public ArrayList<String> getResultat(){
+	public ArrayList<Note> getResultat(){
 		return resultat;
 	}
 }

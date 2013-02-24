@@ -64,10 +64,10 @@ public class Clavier extends JPanel{
 		}
 	}
 	
-	public void activate(ArrayList<String> noms){
+	public void activate(ArrayList<Note> notes){
 		int notePrecedente = -1;
-		for (int i = 0; i < noms.size(); ++i){
-			int note = mappingNomsNotes.get(noms.get(i));
+		for (int i = 0; i < notes.size(); ++i){
+			int note = mappingNomsNotes.get(notes.get(i).getNom());
 			while (note < notePrecedente)
 				note += 12;
 			notesActives[note] = true;

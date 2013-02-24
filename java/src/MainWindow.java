@@ -58,10 +58,10 @@ public class MainWindow extends JFrame{
     			String nom = txtNomAccord.getText();
     			int renversement = txtRenversement.getText().length() > 0 ? Integer.parseInt(txtRenversement.getText()) : 0;
     			XMLImportExport calculateurNotes = new XMLImportExport(nom, renversement);
-    			ArrayList<String> noms = calculateurNotes.getResultat();
+    			ArrayList<Note> notes = calculateurNotes.getResultat();
 
     			clavier.reset();
-    			clavier.activate(noms);
+    			clavier.activate(notes);
     		}
     	}
     }
