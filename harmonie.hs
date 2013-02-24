@@ -169,18 +169,23 @@ parcourirXML _ [NTree (XText nom) []] = nom
 parcourirXML chemin ((NTree (XTag qTag _) deeperTrees):otherTrees) = parcourirXML chemin (if localPart qTag `elem` chemin then deeperTrees else otherTrees)
 parcourirXML _ [] = ""
 
-construireXMLNotes :: [String] -> String
-construireXMLNotes resultats = unlines $ ["<resultat>"] ++ (map (\r -> "<note>"++r++"</note>") resultats) ++ ["</resultat>"]
+construireXMLNotes :: [(String, String)] -> String
+construireXMLNotes resultats = unlines $ ["<resultat>"] ++ (map (\(n,d) -> (init.unlines)
+                                         ["<note>"
+                                         ,"<nom>"++n++"</nom>"
+                                         ,"<degre>"++d++"</degre>"
+                                         ,"</note>"]) resultats) ++
+                                         ["</resultat>"]
 
 traiterRequete :: String -> String
 traiterRequete requeteXML = let nomAccord = parcourirXML ["accord", "nom"] . xread . concat . lines $ requeteXML
                                 renversement = read $ parcourirXML ["accord", "renversement"] . xread . concat . lines $ requeteXML
                                 notes = renverser renversement $ accord nomAccord
-                            in construireXMLNotes $ map (show . fst) $ notes
+                            in construireXMLNotes $ map (\(f,s) -> (show f, show s)) $ notes
 
---main = do
---    requeteXML <- getContents
---    putStrLn $ traiterRequete requeteXML
+main = do
+    requeteXML <- getContents
+    putStrLn $ traiterRequete requeteXML
 
 -- Tests unitaires
 
