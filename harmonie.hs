@@ -111,8 +111,9 @@ construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let
                                                                                 else if elem fondamentale $ map fst (construireGamme (Note (valeurDecalee - 1) Diese) gamme)
                                                                                      then construireGamme (Note (valeurDecalee - 1) Diese) gamme
                                                                                      else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
-                                                          in map simplifier $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
+                                                          in map (fauxDegre . simplifier) $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
                       where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
+                            fauxDegre (n,d) = if decalage == 0 then (n,d) else (n,-1)
 
 simplifier :: (Note, Int) -> (Note, Int)
 simplifier (note, degre) = (readNote . simplifier' . show $ note, degre)
@@ -188,7 +189,7 @@ testDegresMajeur  = ("Degres majeurs          ", intercalate " " $ map (show.snd
 testAccordMineur  = ("Accord mineur           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Do") mineur, "Do Mib Sol")
 testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Sol") septiemeDom, "Sol Si Re Fa")
 testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa") septiemeDom, "Fa La Do Mib")
-testDegres7domb   = ("Degres 7e dom (b )      ", intercalate " " $ map (show.snd) $ construireAccord (readNote "Fa") septiemeDom, "5 7 2 4")
+testDegres7domb   = ("Degres 7e dom (b )      ", intercalate " " $ map (show.snd) $ construireAccord (readNote "Fa") septiemeDom, "-1 -1 -1 -1")
 testAccord7domD   = ("Accord 7e dom ( #)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa#") septiemeDom, "Fa# La# Do# Mi")
 testAccord7dombb  = ("Accord 7e dom (bb)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Re#") septiemeDom, "Re# Sol La# Do#")
 testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Mib") septiemeDom, "Mib Sol Sib Reb")
