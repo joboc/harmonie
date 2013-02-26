@@ -1,4 +1,6 @@
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -19,6 +21,7 @@ public class Clavier extends JPanel{
 	public static int taille = 7 * tailleBlanche * nbOctaves;
 	
 	private boolean[] notesActives = new boolean[nbNotes];
+	private Integer[] degresActifs = new Integer[nbNotes];
 	private int[] mappingBlanchesNotes = new int[7];
 	private int[] mappingNoiresNotes = new int[5];
     private static final Map<String, Integer> mappingNomsNotes = new HashMap<String, Integer>();
@@ -61,17 +64,19 @@ public class Clavier extends JPanel{
 	public void reset(){
 		for (int i = 0; i < 12 * nbOctaves; ++i){
 			notesActives[i] = false;
+			degresActifs[i] = -1;
 		}
 	}
 	
 	public void activate(ArrayList<Note> notes){
 		int notePrecedente = -1;
 		for (int i = 0; i < notes.size(); ++i){
-			int note = mappingNomsNotes.get(notes.get(i).getNom());
-			while (note < notePrecedente)
-				note += 12;
-			notesActives[note] = true;
-			notePrecedente = note;
+			int iNote = mappingNomsNotes.get(notes.get(i).getNom());
+			while (iNote < notePrecedente)
+				iNote += 12;
+			notesActives[iNote] = true;
+			degresActifs[iNote] = notes.get(i).getDegre();
+			notePrecedente = iNote;
 		}
 		this.repaint();
 	}
@@ -91,8 +96,18 @@ public class Clavier extends JPanel{
 		return 12 * octave + note;
 	}
 	
+	private void afficherDegre(int x, int y, int l, int h, String degre, Graphics g){
+		g.setColor(Color.YELLOW);
+		FontMetrics metrics = g.getFontMetrics();
+		String affichage = degre;
+		int lText = metrics.stringWidth(affichage);
+		int hText = metrics.getAscent();
+		g.drawString(affichage, x + l / 2 - lText / 2, y + h / 2 + hText / 2);
+	}
+	
 	public void paintComponent(Graphics g){
 		int tailleOctave = 7 * tailleBlanche;
+		g.setFont(new Font("Arial", Font.PLAIN, 28));
 		for (int iOctave = 0; iOctave < 2; ++iOctave){
 			// touches blanches
 			for (int i = 0; i < 7; ++i){
@@ -100,9 +115,17 @@ public class Clavier extends JPanel{
 				g.fillRect(iOctave * tailleOctave + interstice/2 + i * tailleBlanche, 0, tailleBlanche - interstice, this.getHeight());
 				g.setColor(Color.WHITE); // touche
 				g.fillRect(contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche, contour, tailleBlanche - interstice - 2*contour, this.getHeight() - 2*contour);
-				if (notesActives[indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE)]){
+				int iNote = indexNote(iOctave, i, COULEUR_TOUCHE.BLANCHE);
+				if (notesActives[iNote]){
 					g.setColor(Color.RED); // touche active
-					g.fillRect(contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche, contour + this.getHeight() - hauteurActivationBlanche, tailleBlanche - interstice - 2*contour, hauteurActivationBlanche - 2*contour);
+					int xActivationTouche = contour + iOctave * tailleOctave + interstice/2 + i * tailleBlanche;
+					int yActivationTouche = contour + this.getHeight() - hauteurActivationBlanche;
+					int lActivationTouche = tailleBlanche - interstice - 2*contour;
+					int hActivationTouche = hauteurActivationBlanche - 2*contour;
+					g.fillRect(xActivationTouche, yActivationTouche, lActivationTouche, hActivationTouche);
+					if (degresActifs[iNote] != -1){
+						afficherDegre(xActivationTouche, yActivationTouche, lActivationTouche, hActivationTouche, degresActifs[iNote].toString(), g);
+					}
 				}
 			}
 			// touches noires
@@ -110,10 +133,20 @@ public class Clavier extends JPanel{
 				if (i != 2){
 					g.setColor(Color.BLACK); // contour
 					g.fillRect(iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i, 0, tailleBlanche/2, (int) (this.getHeight() * proportionHauteurNoire));
-					if (notesActives[indexNote(iOctave, i<2 ? i : i-1, COULEUR_TOUCHE.NOIRE)]){
+					int iNote = indexNote(iOctave, i<2 ? i : i-1, COULEUR_TOUCHE.NOIRE);
+					if (notesActives[iNote]){
 						g.setColor(Color.RED); // touche active
 					}
-					g.fillRect(contour + iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i, contour, tailleBlanche/2 - 2*contour, (int) (this.getHeight() * proportionHauteurNoire - 2*contour));
+					int xActivationTouche = contour + iOctave * tailleOctave + tailleBlanche*3/4 + tailleBlanche * i; 
+					int yActivationTouche = contour; 
+					int lActivationTouche = tailleBlanche/2 - 2*contour; 
+					int hActivationTouche = (int) (this.getHeight() * proportionHauteurNoire - 2*contour); 
+					g.fillRect(xActivationTouche, yActivationTouche, lActivationTouche, hActivationTouche);
+					if (notesActives[iNote]){
+						if (degresActifs[iNote] != -1){
+							afficherDegre(xActivationTouche, yActivationTouche, lActivationTouche, hActivationTouche, degresActifs[iNote].toString(), g);
+						}
+					}
 				}
 			}
 		}
