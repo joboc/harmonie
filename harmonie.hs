@@ -78,8 +78,8 @@ majeur7     = ([1, 3, 5, 7], gammeMajeure, 0)  :: Accord
 demiTon = 1
 ton = 2
 type Gamme = [Intervalle]
-gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton, demiTon] :: Gamme
-gammeMineure = [0, ton, demiTon, ton, ton, demiTon, ton, ton] :: Gamme
+gammeMajeure = [0, ton, ton, demiTon, ton, ton, ton] :: Gamme
+gammeMineure = [0, ton, demiTon, ton, ton, demiTon, ton] :: Gamme
 
 -- Logique
 
@@ -95,25 +95,33 @@ cumul :: (Num a) => [a] -> [a]
 cumul = cumul' 0 where cumul' _ [] = []
                        cumul' s (x:xs) = (x+s):(cumul' (s+x) xs)
 
-construireGamme :: Note -> Gamme -> [(Note, Int)]
-construireGamme (Note blancheFond altFond) typeGamme = let notes = map readNote ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"]
+construireNotesGamme :: Note -> Gamme -> [(Note, Int)]
+construireNotesGamme (Note blancheFond altFond) typeGamme =
+                                                       let notes = map readNote ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"]
                                                            base = let (ls, rs) = break (\note -> getBlanche note == blancheFond) notes in rs ++ ls
                                                            cumulGamme = cumul typeGamme
-                                                       in zip (zipWith alterer base cumulGamme) [1..]
+                                                       in zip (zipWith alterer (cycle base) (cycle cumulGamme)) [1..]
                       where alterer (Note n _) intervalle = head [Note n alt
                                                                  | alt <- [DoubleBemol, Bemol, Naturel, Diese, DoubleDiese]
                                                                  , valeur (Note n alt) `mod` 12 == (valeur (Note blancheFond altFond) + intervalle) `mod` 12]
 
+construireGamme :: Note -> Gamme -> [(Note, Int)]
+construireGamme note typeGamme = take (length typeGamme) $ construireNotesGamme note typeGamme
+
 construireAccord :: Note -> Accord -> [(Note, Int)]
-construireAccord fondamentale (degres, gamme, decalage) = let gammeDecalee = let valeurDecalee = (valeur fondamentale + decalage) `mod` 12
-                                                                             in if isBlanche valeurDecalee
-                                                                                then construireGamme (Note valeurDecalee Naturel) gamme
-                                                                                else if elem fondamentale $ map fst (construireGamme (Note (valeurDecalee - 1) Diese) gamme)
-                                                                                     then construireGamme (Note (valeurDecalee - 1) Diese) gamme
-                                                                                     else construireGamme (Note (valeurDecalee + 1) Bemol) gamme
-                                                          in map (fauxDegre . simplifier) $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
+construireAccord fondamentale (degres, gamme, decalage) = 
+                            let gammeDecalee = let valeurDecalee = (valeur fondamentale + decalage) `mod` 12
+                                               in if isBlanche valeurDecalee
+                                                  then construireNotesGamme (Note valeurDecalee Naturel) gamme
+                                                  else if elem fondamentale $ take (length gamme) $ map fst (construireNotesGamme (Note (valeurDecalee - 1) Diese) gamme)
+                                                       then construireNotesGamme (Note (valeurDecalee - 1) Diese) gamme
+                                                       else construireNotesGamme (Note (valeurDecalee + 1) Bemol) gamme
+                            in map (fauxDegre . simplifier) $ (!!) <$> [gammeDecalee] <*> (map (subtract 1) degres)
                       where isBlanche val = val`elem` (map (getBlanche.readNote) $ ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"])
                             fauxDegre (n,d) = if decalage == 0 then (n,d) else (n,-1)
+
+construireAccord9eme :: Note -> Accord -> [(Note, Int)]
+construireAccord9eme note (degres, gamme, decalage) = construireAccord note (degres ++ [if decalage /= -7 then 9 else 13], gamme, decalage) -- -7 -> 7eme dom
 
 simplifier :: (Note, Int) -> (Note, Int)
 simplifier (note, degre) = (readNote . simplifier' . show $ note, degre)
@@ -144,6 +152,9 @@ parseAndConstruct input constructeur getType = let tailleNote = if length input 
       
 accord :: String -> [(Note, Int)]
 accord accordS = parseAndConstruct accordS construireAccord getAccordType
+
+accord9eme :: String -> [(Note, Int)]
+accord9eme accordS = parseAndConstruct accordS construireAccord9eme getAccordType
 
 gamme :: String -> [(Note, Int)]
 gamme gammeS = parseAndConstruct gammeS construireGamme getGammeType
@@ -201,6 +212,8 @@ testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map (show.fst
 testAccordMineur7 = ("Accord mineur 7e        ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Mi") mineur7, "Mi Sol Si Re")
 testAccordMajeur7D= ("Accord majeur 7 (diese) ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Do#") majeur7, "Do# Fa Sol# Do")
 testAccordMajeur7b= ("Accord majeur 7 (bemol) ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Reb") majeur7, "Reb Fa Lab Do")
+testAccord7dom9   = ("Accord 7e dom avec 9e   ", intercalate " " $ map (show.fst) $ construireAccord9eme (readNote "Re#") septiemeDom, "Re# Sol La# Do# Fa")
+testAccordMaj79   = ("Accord majeur 7 avec 9e ", intercalate " " $ map (show.fst) $ construireAccord9eme (readNote "Ab") majeur7, "Lab Do Mib Sol Sib")
 testRenversement  = ("Renversement            ", intercalate " " $ map (show.fst) $ renverser 2 $ construireAccord (readNote "Do#") majeur7, "Sol# Do Do# Fa")
 testparseAccordM  = ("Parsing d'accord majeur ", intercalate " " $ map (show.fst) $ accord "C", "Do Mi Sol")
 testparseAccordm  = ("Parsing d'accord mineur ", intercalate " " $ map (show.fst) $ accord "Abm", "Lab Si Mib")
@@ -227,6 +240,9 @@ unitTest = let
                 ,testAccordMineur7
                 ,testAccordMajeur7D
                 ,testAccordMajeur7b
+                ,testAccordMajeur7b
+                ,testAccord7dom9
+                ,testAccordMaj79
                 ,testRenversement
                 ,testparseAccordM
                 ,testparseAccordm
