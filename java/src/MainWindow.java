@@ -49,7 +49,7 @@ public class MainWindow extends JFrame{
         txtRenversement.setLocation(new Point(panneauHaut.getWidth()/2 - txtRenversement.getWidth()/2, panneauHaut.getHeight()/2 - txtRenversement.getHeight()/2));
         panneauHaut.add(txtRenversement);
         
-        chk9eme = new JCheckBox("9ème");
+        chk9eme = new JCheckBox("9eme");
         panneauHaut.add(chk9eme);
 
         this.repaint();
