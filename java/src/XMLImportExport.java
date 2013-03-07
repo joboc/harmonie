@@ -13,13 +13,13 @@ public class XMLImportExport {
 
 	private ArrayList<Note> resultat;
 	
-	XMLImportExport(String nomAccord, int renversement){
+	XMLImportExport(String nomAccord, int renversement, boolean ajouter9eme){
 		try{
 			DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 	        Document xmlRequest = docBuilder.newDocument();
 	
-	        remplirXML(xmlRequest, nomAccord, renversement);
+	        remplirXML(xmlRequest, nomAccord, renversement, ajouter9eme);
 	        
 	        TransformerFactory transfac = TransformerFactory.newInstance();
 	        Transformer trans = transfac.newTransformer();
@@ -62,9 +62,11 @@ public class XMLImportExport {
         }
 	}
 	
-	private void remplirXML(Document doc, String nomAccord, Integer renversement){
+	private void remplirXML(Document doc, String nomAccord, Integer renversement, boolean ajouter9eme){
+        Element requeteNode = doc.createElement("requete");
+        doc.appendChild(requeteNode);
         Element accordNode = doc.createElement("accord");
-        doc.appendChild(accordNode);
+        requeteNode.appendChild(accordNode);
         Element nomNode = doc.createElement("nom");
         accordNode.appendChild(nomNode);
         Text nomVal = doc.createTextNode(nomAccord);
@@ -73,6 +75,12 @@ public class XMLImportExport {
         accordNode.appendChild(renversementNode);
         Text renversementVal = doc.createTextNode(renversement.toString());
         renversementNode.appendChild(renversementVal);
+        Element optionsNode = doc.createElement("options");
+        requeteNode.appendChild(optionsNode);
+        Element neuviemeNode = doc.createElement("neuvieme");
+        optionsNode.appendChild(neuviemeNode);
+        Text ajouter9emeVal = doc.createTextNode(ajouter9eme ? "True" : "False");
+        neuviemeNode.appendChild(ajouter9emeVal);
 	}
 	
 	public ArrayList<Note> getResultat(){

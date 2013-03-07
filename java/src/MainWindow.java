@@ -2,6 +2,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -10,12 +12,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JCheckBox;
 
 public class MainWindow extends JFrame{
 
 	Clavier clavier;
 	JTextField txtNomAccord;
 	JTextField txtRenversement;
+	JCheckBox chk9eme;
 	
     MainWindow(){
         this.setSize(new Dimension(Clavier.taille, 400));
@@ -44,25 +48,40 @@ public class MainWindow extends JFrame{
         txtRenversement.setPreferredSize(new Dimension(50, 30));
         txtRenversement.setLocation(new Point(panneauHaut.getWidth()/2 - txtRenversement.getWidth()/2, panneauHaut.getHeight()/2 - txtRenversement.getHeight()/2));
         panneauHaut.add(txtRenversement);
+        
+        chk9eme = new JCheckBox("9ème");
+        panneauHaut.add(chk9eme);
 
         this.repaint();
         
-        txtNomAccord.addKeyListener(new AccordsKeyAdapter());
-        txtRenversement.addKeyListener(new AccordsKeyAdapter());
+        txtNomAccord.addKeyListener(new AccordsKeyListener());
+        txtRenversement.addKeyListener(new AccordsKeyListener());
+        chk9eme.addItemListener(new AccordsItemListener());
         
-        }
+    }
 
-    class AccordsKeyAdapter extends KeyAdapter{
+    private void requeteAccord(){
+		String nom = txtNomAccord.getText();
+		int renversement = txtRenversement.getText().length() > 0 ? Integer.parseInt(txtRenversement.getText()) : 0;
+		boolean ajouter9eme = chk9eme.isSelected();
+		XMLImportExport calculateurNotes = new XMLImportExport(nom, renversement, ajouter9eme);
+		ArrayList<Note> notes = calculateurNotes.getResultat();
+
+		clavier.reset();
+		clavier.activate(notes);
+    }
+
+    private class AccordsKeyListener extends KeyAdapter{
     	public void keyPressed(KeyEvent e){
     		if (e.getKeyCode() == KeyEvent.VK_ENTER){
-    			String nom = txtNomAccord.getText();
-    			int renversement = txtRenversement.getText().length() > 0 ? Integer.parseInt(txtRenversement.getText()) : 0;
-    			XMLImportExport calculateurNotes = new XMLImportExport(nom, renversement);
-    			ArrayList<Note> notes = calculateurNotes.getResultat();
-
-    			clavier.reset();
-    			clavier.activate(notes);
+    			requeteAccord();
     		}
     	}
     }
+    private class AccordsItemListener implements ItemListener{
+    	public void itemStateChanged(ItemEvent e){
+   			requeteAccord();
+    	}
+    }
+
 }
