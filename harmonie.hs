@@ -201,11 +201,9 @@ main = do
 -- Tests unitaires
 
 testAccordMajeur  = ("Accord majeur           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "La") majeur, "La Do# Mi")
-testDegresMajeur  = ("Degres majeurs          ", intercalate " " $ map (show.snd) $ construireAccord (readNote "La") majeur, "1 3 5")
 testAccordMineur  = ("Accord mineur           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Do") mineur, "Do Mib Sol")
 testAccord7dom    = ("Accord 7e dom           ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Sol") septiemeDom, "Sol Si Re Fa")
 testAccord7domb   = ("Accord 7e dom (b )      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa") septiemeDom, "Fa La Do Mib")
-testDegres7domb   = ("Degres 7e dom (b )      ", intercalate " " $ map (show.snd) $ construireAccord (readNote "Fa") septiemeDom, "-1 -1 -1 -1")
 testAccord7domD   = ("Accord 7e dom ( #)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Fa#") septiemeDom, "Fa# La# Do# Mi")
 testAccord7dombb  = ("Accord 7e dom (bb)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Re#") septiemeDom, "Re# Sol La# Do#")
 testAccord7domDD  = ("Accord 7e dom (##)      ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Mib") septiemeDom, "Mib Sol Sib Reb")
@@ -214,6 +212,8 @@ testAccordMajeur7D= ("Accord majeur 7 (diese) ", intercalate " " $ map (show.fst
 testAccordMajeur7b= ("Accord majeur 7 (bemol) ", intercalate " " $ map (show.fst) $ construireAccord (readNote "Reb") majeur7, "Reb Fa Lab Do")
 testAccord7dom9   = ("Accord 7e dom avec 9e   ", intercalate " " $ map (show.fst) $ construireAccord9eme (readNote "Re#") septiemeDom, "Re# Sol La# Do# Fa")
 testAccordMaj79   = ("Accord majeur 7 avec 9e ", intercalate " " $ map (show.fst) $ construireAccord9eme (readNote "Ab") majeur7, "Lab Do Mib Sol Sib")
+testDegres        = ("Degres majeurs          ", intercalate " " $ map (show.snd) $ construireAccord9eme (readNote "La") majeur7, "1 3 5 7 9")
+testDegres7domb   = ("Degres 7e dom           ", intercalate " " $ map (show.snd) $ construireAccord (readNote "Fa") septiemeDom, "-1 -1 -1 -1")
 testRenversement  = ("Renversement            ", intercalate " " $ map (show.fst) $ renverser 2 $ construireAccord (readNote "Do#") majeur7, "Sol# Do Do# Fa")
 testparseAccordM  = ("Parsing d'accord majeur ", intercalate " " $ map (show.fst) $ accord "C", "Do Mi Sol")
 testparseAccordm  = ("Parsing d'accord mineur ", intercalate " " $ map (show.fst) $ accord "Abm", "Lab Si Mib")
@@ -229,10 +229,8 @@ testParseGammeMin = ("Parsing de gamme mineure", intercalate " " $ map (show.fst
 unitTest = let
               unitTestsAux = unlines $ map (\(nom, test, resultat) -> nom ++ ": " ++ (if test == resultat then "OK" else "FAILED")) [
                  testAccordMajeur
-                ,testDegresMajeur
                 ,testAccordMineur
                 ,testAccord7dom
-                ,testDegres7domb
                 ,testAccord7domb
                 ,testAccord7domD
                 ,testAccord7dombb
@@ -243,6 +241,8 @@ unitTest = let
                 ,testAccordMajeur7b
                 ,testAccord7dom9
                 ,testAccordMaj79
+                ,testDegres
+                ,testDegres7domb
                 ,testRenversement
                 ,testparseAccordM
                 ,testparseAccordm
