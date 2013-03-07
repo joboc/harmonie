@@ -30,10 +30,8 @@ public class XMLImportExport {
 	        DOMSource source = new DOMSource(xmlRequest);
 	        trans.transform(source, result);
 	        String xmlString = sw.toString();
-	        	        
-	        ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", "./chords");
-	        pb.redirectErrorStream(true);
-	        Process p = pb.start();
+
+	        Process p = (new HaskellProcessBuilder()).start();
 	        InputStream inputStream = p.getInputStream();
 	        OutputStream outputStream = p.getOutputStream();
 	        BufferedWriter bufWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
