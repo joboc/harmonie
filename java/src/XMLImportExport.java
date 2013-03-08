@@ -13,13 +13,13 @@ public class XMLImportExport {
 
 	private ArrayList<Note> resultat;
 	
-	XMLImportExport(String nomAccord, int renversement, boolean ajouter9eme){
+	XMLImportExport(String nomAccord, int renversement, boolean ajouter9eme, boolean retirerFond){
 		try{
 			DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 	        DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 	        Document xmlRequest = docBuilder.newDocument();
 	
-	        remplirXML(xmlRequest, nomAccord, renversement, ajouter9eme);
+	        remplirXML(xmlRequest, nomAccord, renversement, ajouter9eme, retirerFond);
 	        
 	        TransformerFactory transfac = TransformerFactory.newInstance();
 	        Transformer trans = transfac.newTransformer();
@@ -30,6 +30,7 @@ public class XMLImportExport {
 	        DOMSource source = new DOMSource(xmlRequest);
 	        trans.transform(source, result);
 	        String xmlString = sw.toString();
+	        System.out.println(xmlString);
 
 	        Process p = (new HaskellProcessBuilder()).start();
 	        InputStream inputStream = p.getInputStream();
@@ -60,7 +61,7 @@ public class XMLImportExport {
         }
 	}
 	
-	private void remplirXML(Document doc, String nomAccord, Integer renversement, boolean ajouter9eme){
+	private void remplirXML(Document doc, String nomAccord, Integer renversement, boolean ajouter9eme, boolean retirerFond){
         Element requeteNode = doc.createElement("requete");
         doc.appendChild(requeteNode);
         Element nomNode = doc.createElement("nom");
@@ -75,6 +76,10 @@ public class XMLImportExport {
         requeteNode.appendChild(neuviemeNode);
         Text ajouter9emeVal = doc.createTextNode(ajouter9eme ? "True" : "False");
         neuviemeNode.appendChild(ajouter9emeVal);
+        Element retirerFondNode = doc.createElement("retirerFondamentale");
+        requeteNode.appendChild(retirerFondNode);
+        Text retirerFondVal = doc.createTextNode(retirerFond ? "True" : "False");
+        retirerFondNode.appendChild(retirerFondVal);
 	}
 	
 	public ArrayList<Note> getResultat(){

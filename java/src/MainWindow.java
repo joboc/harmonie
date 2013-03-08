@@ -20,6 +20,7 @@ public class MainWindow extends JFrame{
 	JTextField txtNomAccord;
 	JTextField txtRenversement;
 	JCheckBox chk9eme;
+	JCheckBox chkRetirerFond;
 	
     MainWindow(){
         this.setSize(new Dimension(Clavier.taille, 400));
@@ -52,6 +53,9 @@ public class MainWindow extends JFrame{
         chk9eme = new JCheckBox("9eme");
         panneauHaut.add(chk9eme);
 
+        chkRetirerFond = new JCheckBox("Retirer la fondamentale");
+        panneauHaut.add(chkRetirerFond);
+
         this.repaint();
         
         txtNomAccord.addKeyListener(new AccordsKeyListener());
@@ -64,7 +68,8 @@ public class MainWindow extends JFrame{
 		String nom = txtNomAccord.getText();
 		int renversement = txtRenversement.getText().length() > 0 ? Integer.parseInt(txtRenversement.getText()) : 0;
 		boolean ajouter9eme = chk9eme.isSelected();
-		XMLImportExport calculateurNotes = new XMLImportExport(nom, renversement, ajouter9eme);
+		boolean retirerFond = chkRetirerFond.isSelected();
+		XMLImportExport calculateurNotes = new XMLImportExport(nom, renversement, ajouter9eme, retirerFond);
 		ArrayList<Note> notes = calculateurNotes.getResultat();
 
 		clavier.reset();

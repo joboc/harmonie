@@ -192,7 +192,10 @@ traiterRequete :: String -> String
 traiterRequete requeteXML = let nomAccord = parcourirXML ["requete", "accord"] . xread . concat . lines $ requeteXML
                                 renversement = read $ parcourirXML ["requete", "renversement"] . xread . concat . lines $ requeteXML
                                 ajouter9eme = read $ parcourirXML ["requete", "neuvieme"] . xread . concat . lines $ requeteXML :: Bool
-                                notes = renverser renversement $ (if ajouter9eme then accord9eme else accord) nomAccord
+                                retirerFondamentale = read $ parcourirXML ["requete", "retirerFondamentale"] . xread . concat . lines $ requeteXML :: Bool
+                                notesNaturel = (if ajouter9eme then accord9eme else accord) nomAccord
+                                notesFond = (if retirerFondamentale then tail else id) notesNaturel
+                                notes = renverser renversement notesFond
                             in construireXMLNotes $ map (\(f,s) -> (show f, show s)) $ notes
 
 main = do
