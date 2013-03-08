@@ -74,9 +74,11 @@ public class Clavier extends JPanel{
 			int iNote = mappingNomsNotes.get(notes.get(i).getNom());
 			while (iNote < notePrecedente)
 				iNote += 12;
-			notesActives[iNote] = true;
-			degresActifs[iNote] = notes.get(i).getDegre();
-			notePrecedente = iNote;
+			if (iNote < nbNotes){
+				notesActives[iNote] = true;
+				degresActifs[iNote] = notes.get(i).getDegre();
+				notePrecedente = iNote;
+			}
 		}
 		this.repaint();
 	}
