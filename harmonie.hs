@@ -189,9 +189,9 @@ construireXMLNotes resultats = unlines $ ["<resultat>"] ++ (map (\(n,d) -> (init
                                          ["</resultat>"]
 
 traiterRequete :: String -> String
-traiterRequete requeteXML = let nomAccord = parcourirXML ["requete", "accord", "nom"] . xread . concat . lines $ requeteXML
-                                renversement = read $ parcourirXML ["requete", "accord", "renversement"] . xread . concat . lines $ requeteXML
-                                ajouter9eme = read $ parcourirXML ["requete", "options", "neuvieme"] . xread . concat . lines $ requeteXML :: Bool
+traiterRequete requeteXML = let nomAccord = parcourirXML ["requete", "accord"] . xread . concat . lines $ requeteXML
+                                renversement = read $ parcourirXML ["requete", "renversement"] . xread . concat . lines $ requeteXML
+                                ajouter9eme = read $ parcourirXML ["requete", "neuvieme"] . xread . concat . lines $ requeteXML :: Bool
                                 notes = renverser renversement $ (if ajouter9eme then accord9eme else accord) nomAccord
                             in construireXMLNotes $ map (\(f,s) -> (show f, show s)) $ notes
 

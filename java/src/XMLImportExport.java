@@ -63,20 +63,16 @@ public class XMLImportExport {
 	private void remplirXML(Document doc, String nomAccord, Integer renversement, boolean ajouter9eme){
         Element requeteNode = doc.createElement("requete");
         doc.appendChild(requeteNode);
-        Element accordNode = doc.createElement("accord");
-        requeteNode.appendChild(accordNode);
         Element nomNode = doc.createElement("nom");
-        accordNode.appendChild(nomNode);
+        requeteNode.appendChild(nomNode);
         Text nomVal = doc.createTextNode(nomAccord);
         nomNode.appendChild(nomVal);
         Element renversementNode = doc.createElement("renversement");
-        accordNode.appendChild(renversementNode);
+        requeteNode.appendChild(renversementNode);
         Text renversementVal = doc.createTextNode(renversement.toString());
         renversementNode.appendChild(renversementVal);
-        Element optionsNode = doc.createElement("options");
-        requeteNode.appendChild(optionsNode);
         Element neuviemeNode = doc.createElement("neuvieme");
-        optionsNode.appendChild(neuviemeNode);
+        requeteNode.appendChild(neuviemeNode);
         Text ajouter9emeVal = doc.createTextNode(ajouter9eme ? "True" : "False");
         neuviemeNode.appendChild(ajouter9emeVal);
 	}
